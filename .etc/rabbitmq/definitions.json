@@ -1,0 +1,92 @@
+
+{
+  "users": [
+    {
+      "name": "guest",
+      "password": "guest",
+      "tags": "administrator",
+      "hashing_algorithm": "rabbit_password_hashing_sha256"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "payments",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "payments.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "payments.new",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "payments.new.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "payments",
+      "vhost": "/",
+      "destination": "payments.new",
+      "destination_type": "queue",
+      "routing_key": "payments.new",
+      "arguments": {}
+    },
+    {
+      "source": "payments.dlx",
+      "vhost": "/",
+      "destination": "payments.new.dlq",
+      "destination_type": "queue",
+      "routing_key": "payments.new.failed",
+      "arguments": {}
+    }
+  ],
+  "policies": [
+    {
+      "name": "payments-dlx-policy",
+      "vhost": "/",
+      "pattern": "^payments\\.new$",
+      "apply-to": "queues",
+      "priority": 10,
+      "definition": {
+        "dead-letter-exchange": "payments.dlx",
+        "dead-letter-routing-key": "payments.new.failed"
+      }
+    }
+  ]
+}
